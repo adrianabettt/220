@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>O QUE É HARDWARE</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Segoe UI', Arial, sans-serif;
+  background: #f0ecff;
+  min-height: 100vh;
+  padding: 0 0 40px;
+}
+
+/* CABEÇALHO */
+header {
+  background: linear-gradient(135deg, #6C5CE7, #a29bfe);
+  padding: 10px 20px 9px;
+  text-align: center;
+  color: #fff;
+}
+header h1 { font-size: clamp(15px, 3vw, 20px); font-weight: 900; }
+header p  { font-size: 12px; opacity: 0.9; margin-top: 2px; }
+
+/* INSTRUÇÃO */
+.instrucao {
+  background: #fff;
+  border-left: 5px solid #FDCB6E;
+  border-radius: 12px;
+  padding: 12px 18px;
+  margin: 18px auto;
+  max-width: 900px;
+  font-size: 16px;
+  font-weight: 700;
+  color: #444;
+}
+
+/* LAYOUT PRINCIPAL — banco em cima, colunas embaixo */
+.jogo {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 14px;
+}
+
+/* BANCO DE IMAGENS */
+.banco {
+  background: #fff;
+  border: 3px solid #6C5CE7;
+  border-radius: 18px;
+  padding: 16px;
+  width: 100%;
+}
+.banco-titulo {
+  text-align: center;
+  font-size: 15px;
+  font-weight: 900;
+  color: #6C5CE7;
+  margin-bottom: 14px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.banco-grid {
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  gap: 10px;
+}
+
+/* CARD DE IMAGEM */
+.img-card {
+  border-radius: 12px;
+  border: 4px solid #ccc;
+  overflow: hidden;
+  background: #fff;
+  cursor: grab;
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  transition: transform 0.15s, box-shadow 0.15s;
+  user-select: none;
+  touch-action: none;
+}
+.img-card:hover { transform: scale(1.08); box-shadow: 0 6px 18px rgba(0,0,0,0.22); }
+.img-card img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+  display: block;
+  border-radius: 7px;
+}
+.img-card .legenda {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  background: rgba(0,0,0,0.62);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 800;
+  text-align: center;
+  padding: 4px 3px;
+}
+.img-card.arrastando { opacity: 0.3; transform: scale(0.94); }
+.img-card.usado { visibility: hidden; }
+
+/* COLUNAS — sempre lado a lado */
+.colunas {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+  width: 100%;
+}
+.coluna {
+  border-radius: 16px;
+  border: 3px dashed;
+  padding: 14px 12px;
+}
+.coluna-hw     { background: #EDE9FF; border-color: #6C5CE7; }
+.coluna-outros { background: #FFF0E8; border-color: #F76F3A; }
+.col-titulo {
+  text-align: center;
+  font-size: clamp(15px, 3.5vw, 20px);
+  font-weight: 900;
+  margin-bottom: 12px;
+  padding: 8px;
+  border-radius: 10px;
+}
+.ct-hw     { color: #6C5CE7; background: rgba(108,92,231,0.1); }
+.ct-outros { color: #F76F3A; background: rgba(247,111,58,0.1); }
+.col-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  min-height: 90px;
+}
+.slot {
+  border: 2.5px dashed #ccc;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.8);
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s, border-color 0.2s;
+  overflow: hidden;
+  position: relative;
+}
+.slot.hover-over {
+  background: rgba(108,92,231,0.18);
+  border-color: #6C5CE7;
+  border-style: solid;
+}
+.slot img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  border-radius: 7px;
+  display: block;
+}
+.slot .legenda-slot {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  background: rgba(0,0,0,0.55);
+  color: #fff;
+  font-size: 9px;
+  font-weight: 700;
+  text-align: center;
+  padding: 2px;
+}
+.badge-certo  { position:absolute;top:3px;right:3px;background:#00B894;color:#fff;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;z-index:5; }
+.badge-errado { position:absolute;top:3px;right:3px;background:#E17055;color:#fff;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;z-index:5; }
+
+/* BOTÕES */
+.acoes {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin: 22px auto 0;
+  max-width: 900px;
+  flex-wrap: wrap;
+  padding: 0 14px;
+}
+.btn {
+  padding: 14px 32px;
+  border-radius: 14px;
+  font-size: 17px;
+  font-weight: 900;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s;
+}
+.btn-verificar { background: #6C5CE7; color: #fff; }
+.btn-verificar:hover { background: #5649c0; transform: translateY(-2px); }
+.btn-verificar:disabled { background: #bbb; cursor: default; transform: none; }
+.btn-novo { background: #F76F3A; color: #fff; }
+.btn-novo:hover { background: #d4581e; }
+
+/* RESULTADO */
+.resultado-box {
+  max-width: 700px;
+  margin: 20px auto 0;
+  background: #fff;
+  border-radius: 18px;
+  padding: 24px 22px;
+  box-shadow: 0 6px 24px rgba(108,92,231,0.15);
+  border: 3px solid #6C5CE7;
+  display: none;
+  text-align: center;
+}
+.nota-num { font-size: 72px; font-weight: 900; color: #6C5CE7; line-height: 1; }
+.nota-sub { font-size: 14px; color: #888; margin-bottom: 8px; }
+.veredicto {
+  font-size: 19px; font-weight: 900;
+  padding: 14px; border-radius: 14px; margin: 12px 0;
+}
+.v-ex  { background: #E2FAF2; color: #005a52; }
+.v-bom { background: #EDE9FF; color: #5649c0; }
+.v-par { background: #FEF9ED; color: #6b5000; }
+.v-ref { background: #FEE9E8; color: #9d4030; }
+.acertos-erros {
+  display: flex; gap: 12px; justify-content: center; margin: 12px 0; flex-wrap: wrap;
+}
+.ae-box { background: #f5f0ff; border-radius: 12px; padding: 14px 24px; border: 2px solid #DDD5F8; min-width: 110px; }
+.ae-num { font-size: 30px; font-weight: 900; color: #6C5CE7; }
+.ae-lbl { font-size: 13px; color: #888; }
+
+/* RODAPÉ */
+footer {
+  text-align: center;
+  padding: 18px;
+  font-size: 12px;
+  color: #999;
+  border-top: 1px solid #ddd;
+  background: #fff;
+  margin-top: 40px;
+}
+
+@media (max-width: 600px) {
+  .banco-grid { grid-template-columns: repeat(5, 1fr); gap: 7px; }
+  .col-grid { grid-template-columns: repeat(3, 1fr); gap: 5px; }
+  .colunas { grid-template-columns: 1fr 1fr; gap: 10px; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>O QUE É HARDWARE</h1>
+  </header>
+
+<div class="instrucao">
+  🖱️ Arraste cada imagem para a coluna certa: <strong>HARDWARE</strong> ou <strong>OUTROS</strong>!
+</div>
+
+<div class="jogo">
+  <div class="banco">
+    <div class="banco-titulo">🖼️ Imagens para classificar</div>
+    <div class="banco-grid" id="banco-grid"></div>
+  </div>
+  <div class="colunas">
+    <div class="coluna coluna-hw">
+      <div class="col-titulo ct-hw">💻 HARDWARE</div>
+      <div class="col-grid" id="grid-hw"></div>
+    </div>
+    <div class="coluna coluna-outros">
+      <div class="col-titulo ct-outros">🚫 OUTROS</div>
+      <div class="col-grid" id="grid-outros"></div>
+    </div>
+  </div>
+</div>
+
+<div class="acoes">
+  <button class="btn btn-verificar" id="btn-verificar" onclick="verificar()" disabled>✅ Verificar respostas</button>
+  <button class="btn btn-novo" onclick="novoJogo()">🔄 Novo jogo</button>
+</div>
+
+<div class="resultado-box" id="resultado-box">
+  <div class="nota-sub">Sua nota</div>
+  <div class="nota-num" id="res-nota">0</div>
+  <div style="font-size:13px;color:#888;margin-bottom:6px">de 10 pontos</div>
+  <div class="veredicto" id="res-verd"></div>
+  <div class="acertos-erros">
+    <div class="ae-box"><div class="ae-num" id="res-ac">0</div><div class="ae-lbl">✅ Acertos</div></div>
+    <div class="ae-box"><div class="ae-num" id="res-er">0</div><div class="ae-lbl">❌ Erros</div></div>
+  </div>
+</div>
+
+<footer>Profª Adriana Bett Terebinto &nbsp;|&nbsp; Atividade Pedagógica</footer>
+
+<script>
+// ============================================================
+// BASE DE DADOS — seus links originais, corrigidos
+// ============================================================
+const ITENS = [
+
+  // ── HARDWARE (hw: true) ──
+  {
+    id:'teclado', nome:'TECLADO', hw:true,
+    src:'https://www.pngarts.com/files/4/Keyboard-PNG-Image-Background.png',
+    cor:'#a29bfe'
+  },
+  {
+    id:'mouse', nome:'MOUSE', hw:true,
+    src:'https://cdn.pixabay.com/photo/2013/07/12/17/41/computer-mouse-152249_1280.png',
+    cor:'#00B894'
+  },
+  {
+    id:'monitor', nome:'MONITOR', hw:true,
+    src:'https://thumbs.dreamstime.com/b/monitor-do-computador-11021534.jpg',
+    cor:'#0984E3'
+  },
+  {
+    id:'impressora', nome:'IMPRESSORA', hw:true,
+    src:'https://thumbs.dreamstime.com/b/impressora-44688812.jpg',
+    cor:'#6C5CE7'
+  },
+  {
+    id:'pendrive', nome:'PENDRIVE', hw:true,
+    src:'https://img.magnific.com/vetores-gratis/dispositivo-usb_53876-59980.jpg?semt=ais_hybrid&w=740&q=80',
+    cor:'#F76F3A'
+  },
+  {
+    id:'cpu', nome:'CPU', hw:true,
+    src:'https://st2.depositphotos.com/1021974/10840/i/450/depositphotos_108403698-stock-photo-generic-modern-cpu.jpg',
+    cor:'#a29bfe'
+  },
+  {
+    id:'headphone', nome:'HEADPHONE', hw:true,
+    src:'https://www.shutterstock.com/image-photo/light-blue-wireless-headphones-isolated-600nw-2582423653.jpg',
+    cor:'#0984E3'
+  },
+  {
+    id:'roteador', nome:'ROTEADOR', hw:true,
+    src:'https://media.istockphoto.com/id/495732397/pt/foto/preto-router-wi-fi.jpg?s=612x612&w=0&k=20&c=qOZhysAPRqt0_QVny_eLDBzOD1PYIMZ3BWHJF2fg3Pw=',
+    cor:'#00B894'
+  },
+
+  // ── OUTROS — hw: false  ──
+  {
+    id:'microondas', nome:'MICROONDAS', hw:false,
+    src:'https://img.freepik.com/vetores-gratis/forno-micro-ondas-com-luz-interna-isolada-no-fundo-branco-eletrodomesticos_134830-658.jpg?semt=ais_hybrid&w=740&q=80',
+    cor:'#6C5CE7'
+  },
+  {
+    id:'whatsapp', nome:'WHATSAPP', hw:false,
+    src:'https://upload.wikimedia.org/wikipedia/commons/a/a9/Whatsapp_logo.jpg',
+    cor:'#F76F3A'
+  },
+  {
+    id:'maquina', nome:'MÁQ. DE LAVAR', hw:false,
+    src:'https://i.zst.com.br/thumbs/12/1f/3b/200935281.jpg',
+    cor:'#E17055'
+  },
+  {
+    id:'arcondicionado', nome:'AR CONDICIONADO', hw:false,
+    src:'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ8-uIG3KUgP2mWMsKcF5E-NtGdUowa-f1U4Q&s',
+    cor:'#F76F3A'
+  },
+  {
+    id:'carro', nome:'CARRO', hw:false,
+    src:'https://img.freepik.com/vetores-gratis/carro-esportivo-azul-isolado-no-branco-vector_53876-67354.jpg?semt=ais_hybrid&w=740&q=80',
+    cor:'#E17055'
+  },
+  {
+    id:'ventilador', nome:'VENTILADOR', hw:false,
+    src:'https://io.convertiez.com.br/m/lojasedmil/shop/products/images/1539/large/ventilador-de-mesa-2-em-1-turbo-force-vf42-arno-40cm-com-6-pas-127v-preto_12065.jpg',
+    cor:'#F76F3A'
+  },
+  {
+    id:'furadeira', nome:'FURADEIRA', hw:false,
+    src:'https://voceconstroi.fbitsstatic.net/img/p/furadeira-de-impacto-reversivel-bosch-gsb-550-re-220v-550w-3-brocas-71166/257854.jpg?w=1000&h=1000&v=202502191855',
+    cor:'#E17055'
+  },
+  {
+    id:'radio', nome:'RÁDIO', hw:false,
+    src:'https://png.pngtree.com/png-vector/20240804/ourmid/pngtree-orange-vintage-radio-clipart---retro-illustration-png-image_13371250.png',
+    cor:'#F76F3A'
+  }
+
+];
+
+// Emojis de fallback (caso a imagem não carregue)
+const EMOJI = {
+  teclado:'⌨️', mouse:'🖱️', monitor:'🖥️', impressora:'🖨️',
+  pendrive:'💾', cpu:'🔲', headphone:'🎧', roteador:'📡',
+  microondas:'📦', whatsapp:'💬', maquina:'🫧',
+  arcondicionado:'❄️', carro:'🚗', ventilador:'💨',
+  furadeira:'🔧', radio:'📻'
+};
+
+let jogo      = [];
+let estado    = {};
+let arrastando = null;
+let touchClone = null, touchOffX = 0, touchOffY = 0;
+
+function embaralhar(arr) {
+  let a = [...arr];
+  for(let i=a.length-1;i>0;i--){
+    let j=Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+
+function novoJogo() {
+  // Sorteia 5 hw + 5 outros
+  const hw     = embaralhar(ITENS.filter(x=> x.hw)).slice(0,5);
+  const outros = embaralhar(ITENS.filter(x=>!x.hw)).slice(0,5);
+  jogo = embaralhar([...hw, ...outros]);
+  estado = {};
+  arrastando = null;
+  document.getElementById('resultado-box').style.display = 'none';
+  document.getElementById('btn-verificar').disabled = true;
+  renderizar();
+}
+
+function renderizar() {
+  document.getElementById('banco-grid').innerHTML = jogo.map(it => `
+    <div class="img-card" id="ic-${it.id}"
+      style="border-color:${it.cor}"
+      draggable="true"
+      data-id="${it.id}"
+      ondragstart="dndStart(event,'${it.id}')"
+      ondragend="dndEnd(event,'${it.id}')"
+      ontouchstart="tStart(event,'${it.id}')"
+      ontouchmove="tMove(event)"
+      ontouchend="tEnd(event,'${it.id}')">
+      <img src="${it.src}" alt="${it.nome}"
+        onerror="this.style.display='none';this.nextSibling.style.display='flex'"
+        loading="lazy">
+      <span style="display:none;font-size:clamp(26px,5vw,38px);align-items:center;justify-content:center;width:100%;height:100%">${EMOJI[it.id]||'📦'}</span>
+      <div class="legenda">${it.nome}</div>
+    </div>`).join('');
+
+  document.getElementById('grid-hw').innerHTML =
+    Array(5).fill(0).map((_,i) =>
+      `<div class="slot" id="shw-${i}" data-zona="hw" data-i="${i}"
+        ondragover="dndOver(event)" ondragleave="dndLeave(event)" ondrop="dndDrop(event)"></div>`
+    ).join('');
+
+  document.getElementById('grid-outros').innerHTML =
+    Array(5).fill(0).map((_,i) =>
+      `<div class="slot" id="sot-${i}" data-zona="outros" data-i="${i}"
+        ondragover="dndOver(event)" ondragleave="dndLeave(event)" ondrop="dndDrop(event)"></div>`
+    ).join('');
+}
+
+// ── Drag & Drop (desktop) ──
+function dndStart(e, id) {
+  arrastando = id;
+  e.dataTransfer.setData('text', id);
+  setTimeout(() => {
+    const el = document.getElementById('ic-'+id);
+    if(el) el.classList.add('arrastando');
+  }, 0);
+}
+function dndEnd(e, id) {
+  const el = document.getElementById('ic-'+id);
+  if(el) el.classList.remove('arrastando');
+}
+function dndOver(e)  { e.preventDefault(); e.currentTarget.classList.add('hover-over'); }
+function dndLeave(e) { e.currentTarget.classList.remove('hover-over'); }
+function dndDrop(e) {
+  e.preventDefault();
+  e.currentTarget.classList.remove('hover-over');
+  colocarNoSlot(e.currentTarget, e.dataTransfer.getData('text'));
+}
+
+// ── Touch (mobile / tablet) ──
+function tStart(e, id) {
+  arrastando = id;
+  const card = document.getElementById('ic-'+id);
+  const rect = card.getBoundingClientRect();
+  touchOffX = e.touches[0].clientX - rect.left;
+  touchOffY = e.touches[0].clientY - rect.top;
+  touchClone = card.cloneNode(true);
+  touchClone.style.cssText = `
+    position:fixed;top:${rect.top}px;left:${rect.left}px;
+    width:${rect.width}px;height:${rect.height}px;
+    z-index:9999;opacity:0.88;pointer-events:none;border-radius:12px;transition:none;`;
+  document.body.appendChild(touchClone);
+  card.classList.add('arrastando');
+}
+function tMove(e) {
+  if(!touchClone) return;
+  e.preventDefault();
+  const t = e.touches[0];
+  touchClone.style.left = (t.clientX - touchOffX) + 'px';
+  touchClone.style.top  = (t.clientY - touchOffY) + 'px';
+  document.querySelectorAll('.slot').forEach(s => s.classList.remove('hover-over'));
+  const bajo = document.elementFromPoint(t.clientX, t.clientY);
+  const slot = bajo ? (bajo.classList.contains('slot') ? bajo : bajo.closest('.slot')) : null;
+  if(slot) slot.classList.add('hover-over');
+}
+function tEnd(e) {
+  if(!touchClone) return;
+  const t = e.changedTouches[0];
+  document.querySelectorAll('.slot').forEach(s => s.classList.remove('hover-over'));
+  touchClone.remove(); touchClone = null;
+  const bajo = document.elementFromPoint(t.clientX, t.clientY);
+  const slot = bajo ? (bajo.classList.contains('slot') ? bajo : bajo.closest('.slot')) : null;
+  const card = document.getElementById('ic-'+arrastando);
+  if(slot) {
+    colocarNoSlot(slot, arrastando);
+  } else {
+    if(card) card.classList.remove('arrastando');
+  }
+  arrastando = null;
+}
+
+function colocarNoSlot(slot, id) {
+  if(!id) return;
+  const it = jogo.find(x => x.id === id);
+  if(!it) return;
+
+  // Remove de slot anterior, se existir
+  document.querySelectorAll('.slot').forEach(s => {
+    if(s.dataset.id === id) { s.innerHTML = ''; delete s.dataset.id; }
+  });
+
+  // Devolve item anterior do slot ao banco
+  if(slot.dataset.id) {
+    const antId  = slot.dataset.id;
+    const antCard = document.getElementById('ic-'+antId);
+    if(antCard) antCard.classList.remove('arrastando', 'usado');
+    delete estado[antId];
+    slot.innerHTML = '';
+    delete slot.dataset.id;
+  }
+
+  // Insere imagem no slot
+  slot.innerHTML = `
+    <img src="${it.src}" alt="${it.nome}"
+      onerror="this.style.display='none';this.nextSibling.style.display='flex'"
+      style="width:100%;height:100%;object-fit:cover;border-radius:7px">
+    <span style="display:none;font-size:clamp(22px,4vw,32px);align-items:center;justify-content:center;width:100%;height:100%;position:absolute">${EMOJI[id]||'📦'}</span>
+    <div class="legenda-slot">${it.nome}</div>`;
+  slot.dataset.id = id;
+  estado[id] = slot.dataset.zona;
+
+  // Esconde do banco
+  const card = document.getElementById('ic-'+id);
+  if(card) { card.classList.remove('arrastando'); card.classList.add('usado'); }
+
+  // Habilita verificar quando todos colocados
+  if(Object.keys(estado).length === jogo.length) {
+    document.getElementById('btn-verificar').disabled = false;
+  }
+}
+
+function verificar() {
+  let certos = 0;
+  jogo.forEach(it => {
+    const ok = estado[it.id] === (it.hw ? 'hw' : 'outros');
+    if(ok) certos++;
+    document.querySelectorAll('.slot').forEach(s => {
+      if(s.dataset.id === it.id) {
+        const badge = document.createElement('div');
+        badge.className = ok ? 'badge-certo' : 'badge-errado';
+        badge.textContent = ok ? '✓' : '✗';
+        s.appendChild(badge);
+        s.style.border = `3px solid ${ok ? '#00B894' : '#E17055'}`;
+      }
+    });
+  });
+  document.getElementById('btn-verificar').disabled = true;
+
+  const nota = Math.round(certos / jogo.length * 100) / 10;
+  document.getElementById('res-nota').textContent = nota.toFixed(1);
+  document.getElementById('res-ac').textContent = certos;
+  document.getElementById('res-er').textContent = jogo.length - certos;
+
+  let verd, cls;
+  if(nota >= 9)      { verd='🌟 Excelente domínio do conteúdo!';              cls='v-ex';  }
+  else if(nota >= 7) { verd='😊 Bom domínio do conteúdo!';                    cls='v-bom'; }
+  else if(nota >= 5) { verd='📚 Domínio parcial. Recomenda-se revisão.';      cls='v-par'; }
+  else               { verd='🔁 Necessita reforço e retomada do conteúdo.';   cls='v-ref'; }
+
+  const vel = document.getElementById('res-verd');
+  vel.textContent = verd;
+  vel.className = 'veredicto ' + cls;
+
+  const box = document.getElementById('resultado-box');
+  box.style.display = 'block';
+  box.scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+novoJogo();
+</script>
+</body>
+</html>
